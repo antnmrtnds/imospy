@@ -1,0 +1,146 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Project Repository and Initial Configuration",
+        "description": "Initialize the project repository with Next.js 14, TypeScript, and shadcn/ui components. Configure basic CI/CD pipeline for Railway deployment.",
+        "details": "Create a new Next.js 14 project with TypeScript. Install shadcn/ui components and set up initial project structure. Configure Railway deployment and basic CI/CD workflow. Ensure all required dependencies are installed and documented.",
+        "testStrategy": "Verify project builds and deploys successfully to Railway. Check that shadcn/ui components render correctly in a basic page.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement User Authentication with Clerk",
+        "description": "Integrate Clerk for secure user authentication and management.",
+        "details": "Set up Clerk authentication provider in Next.js. Implement sign-up, sign-in, and user profile management. Store user data in Supabase via Clerk webhooks or direct API calls. Ensure session management is secure and robust.",
+        "testStrategy": "Test all authentication flows (sign-up, sign-in, profile update). Verify user data is correctly stored in Supabase and accessible.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Setup Supabase Database and Core Data Models",
+        "description": "Configure Supabase PostgreSQL database and implement core data models for users, tracked accounts, and content.",
+        "details": "Create tables for User, TrackedAccount, and Content as per the provided TypeScript models. Set up relationships and indexes. Ensure real-time subscriptions are enabled for content updates.",
+        "testStrategy": "Test CRUD operations for each model. Verify real-time subscription triggers on content updates.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Build Basic Dashboard UI with Account Selection",
+        "description": "Develop a clean, modern dashboard interface for account selection and management.",
+        "details": "Use shadcn/ui components to build a responsive dashboard. Implement account selection and management UI. Support up to 5 tracked accounts per user. Ensure UI is mobile-responsive.",
+        "testStrategy": "Test account selection, addition, and removal. Verify UI responsiveness on desktop and mobile.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Integrate ScrapeCreators API for Content Scraping",
+        "description": "Connect to ScrapeCreators API for real-time content extraction from Instagram, TikTok, and LinkedIn.",
+        "details": "Implement API key-based authentication. Fetch posts, stories, and updates from tracked accounts. Store scraped content in Supabase. Handle platform-specific content formats and rate limits.",
+        "testStrategy": "Test API integration with mock and real data. Verify content is correctly stored and updated in the database.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Basic Content Display and Timeline",
+        "description": "Display scraped content in a chronological timeline on the dashboard.",
+        "details": "Fetch and display content from Supabase in a timeline view. Show basic post details (caption, media, engagement). Support filtering by account and content type.",
+        "testStrategy": "Test timeline rendering with various content types. Verify filtering and sorting functionality.",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Develop Individual Account Dashboard Pages",
+        "description": "Create dedicated pages for each tracked account with detailed metrics and analytics.",
+        "details": "Build account-specific dashboards showing engagement metrics (likes, comments, shares). Display content timeline for each account. Include platform-specific analytics.",
+        "testStrategy": "Test navigation to account pages. Verify metrics and timeline display for each account.",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Content Categorization and Tagging",
+        "description": "Automatically categorize and tag real estate-related content.",
+        "details": "Add logic to detect and tag content as listings, market insights, or trends. Store tags in the Content model. Allow filtering by category in the UI.",
+        "testStrategy": "Test automatic tagging accuracy. Verify filtering by category works as expected.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Add Real-time Notifications and Updates",
+        "description": "Enable real-time notifications for new content and updates.",
+        "details": "Use Supabase real-time subscriptions to notify users of new posts and updates. Display notifications in the UI. Support push notifications for mobile.",
+        "testStrategy": "Test notification delivery for new content. Verify UI updates in real-time.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Portuguese Language Localization",
+        "description": "Add Portuguese language support with English fallback.",
+        "details": "Integrate i18n library for Next.js. Translate UI elements and content. Ensure fallback to English if Portuguese translation is missing.",
+        "testStrategy": "Test language switching and fallback. Verify all UI elements are translated.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-24T10:58:44.929Z",
+      "updated": "2025-06-24T10:58:44.929Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

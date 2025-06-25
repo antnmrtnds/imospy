@@ -1,0 +1,199 @@
+<context>
+# Overview  
+imospy is a specialized social media tracking application designed for monitoring key players in the Portuguese real estate market. The app addresses the challenge of staying informed about market trends, property developments, and industry insights by consolidating social media content from top real estate professionals, agencies, and influencers across Instagram, TikTok, and LinkedIn. 
+
+Target users include real estate investors, property developers, market analysts, and real estate professionals who need to track competitor activities, market sentiment, and emerging opportunities in the Portuguese property sector.
+
+# Core Features  
+## Account Selection & Management
+- **Multi-platform tracking**: Users can select up to 5 accounts across Instagram, TikTok, and LinkedIn
+- **Portuguese real estate focus**: Curated suggestions of relevant accounts in the Portuguese property market
+- **Account validation**: Ensures selected accounts are active and publicly accessible
+
+## Automated Content Scraping
+- **ScrapeCreators API integration**: Leverages the ScrapeCreators API for reliable, real-time content extraction
+- **Content synchronization**: Automatically fetches new posts, stories, and updates from tracked accounts
+- **Multi-platform support**: Handles different content formats across Instagram, TikTok, and LinkedIn
+
+## Account Analytics Dashboard
+- **Dedicated account pages**: Individual dashboard for each tracked account showing social metrics
+- **Content timeline**: Chronological display of latest posts and updates
+- **Engagement metrics**: Likes, comments, shares, and platform-specific analytics
+- **Content categorization**: Automatic tagging of real estate-related content (listings, market insights, trends)
+
+# User Experience  
+## User Personas
+**Primary Persona - Real Estate Investor "Carlos"**
+- 35-45 years old, experienced property investor
+- Manages multiple properties across Lisbon and Porto
+- Needs to stay updated on market trends and competitor activities
+- Values efficiency and consolidated information sources
+
+**Secondary Persona - Property Developer "Ana"**
+- 28-40 years old, works for a development company
+- Responsible for market research and competitor analysis
+- Needs insights into successful marketing strategies and market positioning
+- Prefers visual, easy-to-digest information
+
+## Key User Flows
+1. **Onboarding Flow**: Account creation → Platform selection → Account discovery → Track setup
+2. **Daily Monitoring Flow**: Login → Dashboard overview → Account-specific insights → Content review
+3. **Account Management Flow**: Add/remove tracked accounts → Update tracking preferences → View historical data
+
+## UI/UX Considerations
+- Clean, modern interface using shadcn components
+- Mobile-responsive design for on-the-go monitoring
+- Portuguese language support with English fallback
+- Intuitive navigation between tracked accounts
+- Real-time notifications for new content
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+- **Frontend**: Next.js 14 with React, TypeScript, and shadcn/ui components
+- **Backend**: Supabase for database and real-time subscriptions
+- **Deployment**: Vercel for hosting and CI/CD
+- **Caching**: Redis for API response caching and session management
+- **Authentication**: Clerk for user management and secure authentication
+
+## Data Models
+```typescript
+// User model
+User {
+  id: string
+  email: string
+  created_at: timestamp
+  subscription_tier: string
+}
+
+// Tracked Account model
+TrackedAccount {
+  id: string
+  user_id: string (FK)
+  platform: 'instagram' | 'tiktok' | 'linkedin'
+  account_handle: string
+  account_name: string
+  account_url: string
+  is_active: boolean
+  added_at: timestamp
+}
+
+// Content model
+Content {
+  id: string
+  tracked_account_id: string (FK)
+  content_id: string (platform-specific)
+  content_type: 'post' | 'story' | 'video'
+  content_url: string
+  caption: text
+  media_urls: string[]
+  engagement_data: json
+  scraped_at: timestamp
+}
+```
+
+## APIs and Integrations
+- **ScrapeCreators API**: Primary integration for social media content scraping
+- **Supabase API**: Database operations and real-time subscriptions
+- **Clerk API**: User authentication and management
+- **Redis**: Caching layer for improved performance
+
+## Infrastructure Requirements
+- **Vercel**: Application hosting with automatic deployments
+- **Supabase**: PostgreSQL database with real-time capabilities
+- **Redis Cloud**: Managed Redis instance for caching
+- **Clerk**: Authentication service
+- **ScrapeCreators**: External API for content scraping
+
+# Development Roadmap  
+## Phase 1: MVP Foundation (Core Functionality)
+- User authentication system with Clerk integration
+- Basic dashboard with account selection interface
+- ScrapeCreators API integration for content scraping
+- Database setup with core data models
+- Basic account tracking (up to 5 accounts)
+- Simple content display for tracked accounts
+
+## Phase 2: Enhanced User Experience
+- Individual account dashboard pages with detailed metrics
+- Content categorization and filtering
+- Real-time notifications for new content
+- Improved UI/UX with shadcn components
+- Mobile-responsive design
+- Portuguese language localization
+
+## Phase 3: Advanced Analytics & Features
+- Historical data analysis and trends
+- Content performance insights
+- Export functionality for reports
+- Advanced filtering and search capabilities
+- Bulk content management features
+- User preference settings and customization
+
+## Phase 4: Scale & Polish
+- Performance optimizations with Redis caching
+- Advanced error handling and retry mechanisms
+- Comprehensive testing suite
+- Documentation and user guides
+- Monitoring and analytics implementation
+
+# Logical Dependency Chain
+## Foundation Layer (Build First)
+1. **Authentication System**: Clerk integration for user management
+2. **Database Schema**: Supabase setup with core data models
+3. **Basic UI Framework**: Next.js setup with shadcn components
+
+## Core Functionality Layer
+4. **Account Management**: Add/remove tracked accounts functionality
+5. **ScrapeCreators Integration**: API connection and content fetching
+6. **Basic Content Display**: Simple dashboard showing scraped content
+
+## User Experience Layer
+7. **Individual Account Pages**: Dedicated dashboards for each tracked account
+8. **Content Organization**: Proper categorization and timeline display
+9. **Real-time Updates**: Live content synchronization
+
+## Enhancement Layer
+10. **Analytics & Metrics**: Engagement data and performance insights
+11. **Advanced UI/UX**: Polish interface and add advanced features
+12. **Performance Optimization**: Caching and speed improvements
+
+# Risks and Mitigations  
+## Technical Challenges
+- **API Rate Limits**: ScrapeCreators API limitations could impact real-time updates
+  - *Mitigation*: Implement intelligent caching and batch processing
+- **Content Format Variations**: Different platforms have varying content structures
+  - *Mitigation*: Build flexible content parsers and robust error handling
+
+## MVP Scope Management
+- **Feature Creep**: Risk of over-engineering the initial version
+  - *Mitigation*: Strict adherence to 5-account limit and core features only
+- **Platform Integration Complexity**: Each social platform has unique challenges
+  - *Mitigation*: Start with one platform (Instagram) and gradually add others
+
+## Resource Constraints
+- **API Costs**: ScrapeCreators usage costs could scale unexpectedly
+  - *Mitigation*: Implement usage monitoring and caching strategies
+- **Development Timeline**: Complex integrations might delay launch
+  - *Mitigation*: Prioritize core functionality over polish features
+
+# Appendix  
+## Research Findings
+- Portuguese real estate market is highly active on Instagram and LinkedIn
+- Key players include major agencies like ERA, Remax, and independent agents
+- Content types include property showcases, market insights, and educational content
+- Peak engagement times align with evening hours (7-9 PM)
+
+## Technical Specifications
+- **Supported Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Mobile Support**: iOS 14+, Android 8+
+- **Performance Targets**: < 3s initial load time, < 1s navigation
+- **Scalability**: Support for 1000+ concurrent users in MVP phase
+
+## ScrapeCreators API Integration Details
+- **Authentication**: API key-based authentication
+- **Rate Limits**: Refer to [ScrapeCreators documentation](https://docs.scrapecreators.com/)
+- **Supported Platforms**: Instagram, TikTok, LinkedIn
+- **Content Types**: Posts, stories, basic profile metrics
+- **Response Format**: JSON with standardized content structure
+</PRD>
