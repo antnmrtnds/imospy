@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,6 +8,7 @@ import { useAccounts, useDeleteAccount, useUpdateAccount } from '@/hooks/useAcco
 import { useAccountContent, useScrapeContent } from '@/hooks/useContent'
 import { TrackedAccount } from '@/types'
 import Link from 'next/link'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface AccountPageContentProps {
   accountId: string
@@ -47,8 +48,42 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
   
   const { data: accounts = [] } = useAccounts()
   const { data: content = [], isLoading: contentLoading, refetch: refetchContent } = useAccountContent(accountId)
-  // Show newest posts first by reversing the content array
-  const sortedContent = [...content].reverse()
+
+  // Like filter state (all, top 50%, top 25%, top 10%)
+  const [likesFilter, setLikesFilter] = useState<'all' | 'top50' | 'top25' | 'top10'>('all')
+
+  // Compute filtered content based on selected percentile
+  const filteredContent = useMemo(() => {
+    if (likesFilter === 'all') return [...content]
+
+    const likeValues = content
+      .map((item) => (item.engagement_data?.likes ?? 0) as number)
+      .sort((a, b) => b - a) // descending
+
+    if (likeValues.length === 0) return [...content]
+
+    let percentile = 0
+    switch (likesFilter) {
+      case 'top50':
+        percentile = 0.5
+        break
+      case 'top25':
+        percentile = 0.25
+        break
+      case 'top10':
+        percentile = 0.1
+        break
+    }
+
+    const index = Math.max(0, Math.floor(likeValues.length * percentile) - 1)
+    const threshold = likeValues[index]
+
+    return content.filter((item) => (item.engagement_data?.likes ?? 0) >= threshold)
+  }, [likesFilter, content])
+
+  // Show newest posts first by reversing the filtered content array
+  const sortedContent = [...filteredContent].reverse()
+  
   const scrapeContentMutation = useScrapeContent()
   const updateAccountMutation = useUpdateAccount()
   
@@ -260,6 +295,22 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
           </motion.div>
         ))}
       </motion.div>
+
+      {/* Likes Filter */}
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-sm text-gray-600">Filter by likes:</span>
+        <Select value={likesFilter} onValueChange={(val) => setLikesFilter(val as any)}>
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All posts</SelectItem>
+            <SelectItem value="top50">Top 50%</SelectItem>
+            <SelectItem value="top25">Top 25%</SelectItem>
+            <SelectItem value="top10">Top 10%</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Content Grid */}
       <motion.div
