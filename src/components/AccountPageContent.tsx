@@ -47,6 +47,8 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
   
   const { data: accounts = [] } = useAccounts()
   const { data: content = [], isLoading: contentLoading, refetch: refetchContent } = useAccountContent(accountId)
+  // Show newest posts first by reversing the content array
+  const sortedContent = [...content].reverse()
   const scrapeContentMutation = useScrapeContent()
   const updateAccountMutation = useUpdateAccount()
   
@@ -308,7 +310,7 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
                 animate="visible"
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
-                {content.map(item => (
+                {sortedContent.map(item => (
                   <motion.div
                     key={item.id}
                     variants={itemVariants}
