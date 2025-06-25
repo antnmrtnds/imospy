@@ -81,8 +81,10 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
     return content.filter((item) => (item.engagement_data?.likes ?? 0) >= threshold)
   }, [likesFilter, content])
 
-  // Show newest posts first by reversing the filtered content array
-  const sortedContent = [...filteredContent].reverse()
+  // Ensure newest posts appear first by explicitly sorting by the scraped_at timestamp
+  const sortedContent = [...filteredContent].sort(
+    (a, b) => new Date(b.scraped_at).getTime() - new Date(a.scraped_at).getTime()
+  )
   
   const scrapeContentMutation = useScrapeContent()
   const updateAccountMutation = useUpdateAccount()
