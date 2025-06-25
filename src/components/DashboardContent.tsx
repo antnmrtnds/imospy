@@ -33,31 +33,10 @@ export default function DashboardContent() {
 
   if (isLoading) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center min-h-[400px]"
-      >
-        <div className="text-center">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ 
-              duration: 1, 
-              repeat: Infinity, 
-              ease: "linear" 
-            }}
-            className="rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"
-          />
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="mt-2 text-gray-600"
-          >
-            Loading accounts...
-          </motion.p>
-        </div>
-      </motion.div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-2 text-gray-600">Loading accounts...</p>
+      </div>
     )
   }
 

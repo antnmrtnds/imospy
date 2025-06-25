@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAccounts, useDeleteAccount, useUpdateAccount } from '@/hooks/useAccounts'
@@ -50,6 +50,17 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
   const scrapeContentMutation = useScrapeContent()
   const updateAccountMutation = useUpdateAccount()
   
+  const shouldReduceMotion = useReducedMotion()
+  // Variants for content animations
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: shouldReduceMotion ? {} : { staggerChildren: 0.05 } }
+  }
+  const itemVariants = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 20 },
+    visible: { opacity: 1, y: 0 }
+  }
+
   const handleEscape = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       setSelectedCarousel(null)
@@ -263,29 +274,10 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
           </CardHeader>
           <CardContent>
             {contentLoading ? (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center justify-center py-12"
-              >
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ 
-                    duration: 1, 
-                    repeat: Infinity, 
-                    ease: "linear" 
-                  }}
-                  className="rounded-full h-8 w-8 border-b-2 border-blue-600"
-                />
-                <motion.span 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="ml-3 text-gray-600"
-                >
-                  Loading content...
-                </motion.span>
-              </motion.div>
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+                <span className="ml-3 text-gray-600">Loading content...</span>
+              </div>
             ) : content.length === 0 ? (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -310,371 +302,358 @@ export default function AccountPageContent({ accountId }: AccountPageContentProp
                 </p>
               </motion.div>
             ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
-                <AnimatePresence>
-                  {content.map((item, index) => (
-                    <motion.div 
-                      key={item.id}
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                      transition={{ 
-                        duration: 0.4, 
-                        delay: index * 0.05,
-                        type: "spring",
-                        stiffness: 200
-                      }}
-                      whileHover={{ 
-                        y: -5, 
-                        scale: 1.02
-                      }}
-                      className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                    >
-                      {/* Media Preview (skipped for LinkedIn) */}
-                      {account.platform !== 'linkedin' && item.media_urls && item.media_urls.length > 0 ? (
-                        <motion.div 
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="aspect-square bg-gray-200 flex items-center justify-center relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => {
-                            if (item.content_type === 'video') {
-                              setSelectedVideo(item)
-                            } else if (item.media_urls.length > 1) {
-                              setSelectedCarousel(item)
-                            }
-                          }}
-                        >
-                          {item.content_type === 'video' ? (
-                            <div className="w-full h-full relative group">
-                              {(() => {
-                                // Platform-specific video handling
-                                if (account.platform === 'tiktok') {
-                                  // TikTok: Use cover images as thumbnails
-                                  const coverUrl = item.media_urls.find((url: string) => 
-                                    !url.includes('.mp4') && !url.includes('video') // Get cover, not video
-                                  )
-                                  
-                                  return (
-                                    <div className="w-full h-full relative">
-                                      {coverUrl ? (
-                                        <img
-                                          src={coverUrl}
-                                          alt="TikTok video thumbnail"
-                                          className="w-full h-full object-cover"
-                                          onError={(e) => {
-                                            e.currentTarget.style.display = 'none'
-                                            const fallback = e.currentTarget.nextElementSibling?.nextElementSibling as HTMLElement
-                                            if (fallback) fallback.style.display = 'flex'
-                                          }}
-                                        />
-                                      ) : (
-                                        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                                          <div className="text-center text-white">
-                                            <div className="text-4xl mb-2">🎥</div>
-                                            <div className="text-sm">TikTok Video</div>
-                                          </div>
-                                        </div>
-                                      )}
-                                      {/* TikTok play button overlay */}
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all">
-                                        <div className="bg-white bg-opacity-90 rounded-full p-4 group-hover:scale-110 transition-transform">
-                                          <svg className="w-8 h-8 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                          </svg>
-                                        </div>
-                                      </div>
-                                      {/* TikTok badge */}
-                                      <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                                        TikTok
-                                      </div>
-                                    </div>
-                                  )
-                                } else {
-                                  // Instagram/other platforms: existing logic
-                                  const videoUrl = item.media_urls.find((url: string) => 
-                                    url.includes('.mp4') || url.includes('.mov')
-                                  )
-                                  const posterUrl = item.media_urls.find((url: string) => 
-                                    url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('scontent-')
-                                  )
-                                  
-                                  return (
-                                    <div className="w-full h-full relative">
-                                      {videoUrl && (
-                                        <video
-                                          src={videoUrl}
-                                          poster={posterUrl && (posterUrl.includes('instagram.com') || posterUrl.includes('cdninstagram.com') || posterUrl.includes('scontent-'))
-                                            ? `/api/proxy-image?url=${encodeURIComponent(posterUrl)}`
-                                            : posterUrl
-                                          }
-                                          className="w-full h-full object-cover"
-                                          muted
-                                          playsInline
-                                          preload="metadata"
-                                        />
-                                      )}
-                                      {/* Play button overlay */}
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all">
-                                        <div className="bg-white bg-opacity-90 rounded-full p-4 group-hover:scale-110 transition-transform">
-                                          <svg className="w-8 h-8 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                          </svg>
-                                        </div>
-                                      </div>
-                                      {/* Video indicator badge */}
-                                      <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                                        🎥 Video
-                                      </div>
-                                    </div>
-                                  )
-                                }
-                              })()}
-                              {/* Video fallback */}
-                              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
-                                <div className="text-center">
-                                  <div className="text-4xl mb-2">🎥</div>
-                                  <div className="text-sm text-gray-600">Video</div>
-                                </div>
-                              </div>
-                            </div>
-                          ) : item.media_urls.length === 1 ? (
-                            // Single image - platform-specific handling
-                            <div className="w-full h-full relative">
-                              <img
-                                src={(() => {
-                                  const url = item.media_urls[0]
-                                  // Use proxy for Instagram/CDN URLs, but not for LinkedIn/TikTok
-                                  if ((url.includes('instagram.com') || url.includes('cdninstagram.com') || url.includes('scontent-')) && account.platform === 'instagram') {
-                                    return `/api/proxy-image?url=${encodeURIComponent(url)}`
-                                  }
-                                  return url
-                                })()}
-                                alt="Post content"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none'
-                                  const fallback = e.currentTarget.nextElementSibling as HTMLElement
-                                  if (fallback) fallback.style.display = 'flex'
-                                }}
-                              />
-                              {/* Platform badge for non-Instagram content */}
-                              {account.platform !== 'instagram' && (
-                                <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full capitalize">
-                                  {account.platform}
-                                </div>
-                              )}
-                              {/* Image fallback */}
-                              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
-                                <div className="text-center">
-                                  <div className="text-4xl mb-2">📷</div>
-                                  <div className="text-sm text-gray-600">Image</div>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            // Multiple images - show in grid
-                            <div className={`w-full h-full grid gap-1 ${
-                              item.media_urls.length === 2 ? 'grid-cols-2' :
-                              item.media_urls.length === 3 ? 'grid-cols-2 grid-rows-2' :
-                              'grid-cols-2 grid-rows-2'
-                            }`}>
-                              {item.media_urls.slice(0, 4).map((url, idx) => (
-                                <div key={idx} className={`relative overflow-hidden ${
-                                  item.media_urls.length === 3 && idx === 0 ? 'row-span-2' : ''
-                                }`}>
-                                  <img
-                                    src={(() => {
-                                      // Use proxy for any Instagram/CDN URLs
-                                      if (url.includes('instagram.com') || url.includes('cdninstagram.com') || url.includes('scontent-')) {
-                                        return `/api/proxy-image?url=${encodeURIComponent(url)}`
-                                      }
-                                      return url
-                                    })()}
-                                    alt={`Carousel image ${idx + 1}`}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none'
-                                      const fallback = e.currentTarget.nextElementSibling as HTMLElement
-                                      if (fallback) fallback.style.display = 'flex'
-                                    }}
-                                  />
-                                  {/* Individual image fallback */}
-                                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
-                                    <div className="text-2xl">📷</div>
-                                  </div>
-                                  {/* Show count overlay on last image if more than 4 */}
-                                  {idx === 3 && item.media_urls.length > 4 && (
-                                    <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
-                                      <span className="text-black font-bold text-lg">+{item.media_urls.length - 4}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {/* Carousel indicator - only for non-video posts */}
-                          {item.media_urls.length > 1 && item.content_type !== 'video' && (
-                            <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                              📷 {item.media_urls.length}
-                            </div>
-                          )}
-                          {/* Click to view indicator - only for non-video posts */}
-                          {item.media_urls.length > 1 && item.content_type !== 'video' && (
-                            <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                              Click to view all
-                            </div>
-                          )}
-                        </motion.div>
-                      ) : null}
-                      
-                      <div className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="px-2 py-1 text-xs bg-gray-100 rounded-full">
-                            {item.content_type}
-                          </span>
-                          <span className="text-xs text-gray-500">
+                {content.map(item => (
+                  <motion.div
+                    key={item.id}
+                    variants={itemVariants}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.02, y: -5 }}
+                    className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    {/* Media Preview (skipped for LinkedIn) */}
+                    {account.platform !== 'linkedin' && item.media_urls && item.media_urls.length > 0 ? (
+                      <motion.div 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="aspect-square bg-gray-200 flex items-center justify-center relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => {
+                          if (item.content_type === 'video') {
+                            setSelectedVideo(item)
+                          } else if (item.media_urls.length > 1) {
+                            setSelectedCarousel(item)
+                          }
+                        }}
+                      >
+                        {item.content_type === 'video' ? (
+                          <div className="w-full h-full relative group">
                             {(() => {
-                              // Try to get the actual post date from engagement_data.timestamp first
-                              const timestamp = item.engagement_data?.timestamp || item.scraped_at
-                              if (timestamp) {
-                                const date = new Date(timestamp)
-                                // Check if date is valid
-                                if (!isNaN(date.getTime())) {
-                                  return date.toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })
-                                }
+                              // Platform-specific video handling
+                              if (account.platform === 'tiktok') {
+                                // TikTok: Use cover images as thumbnails
+                                const coverUrl = item.media_urls.find((url: string) => 
+                                  !url.includes('.mp4') && !url.includes('video') // Get cover, not video
+                                )
+                                
+                                return (
+                                  <div className="w-full h-full relative">
+                                    {coverUrl ? (
+                                      <img
+                                        src={coverUrl}
+                                        alt="TikTok video thumbnail"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none'
+                                          const fallback = e.currentTarget.nextElementSibling?.nextElementSibling as HTMLElement
+                                          if (fallback) fallback.style.display = 'flex'
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                        <div className="text-center text-white">
+                                          <div className="text-4xl mb-2">🎥</div>
+                                          <div className="text-sm">TikTok Video</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {/* TikTok play button overlay */}
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all">
+                                      <div className="bg-white bg-opacity-90 rounded-full p-4 group-hover:scale-110 transition-transform">
+                                        <svg className="w-8 h-8 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                                          <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                      </div>
+                                    </div>
+                                    {/* TikTok badge */}
+                                    <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+                                      TikTok
+                                    </div>
+                                  </div>
+                                )
+                              } else {
+                                // Instagram/other platforms: existing logic
+                                const videoUrl = item.media_urls.find((url: string) => 
+                                  url.includes('.mp4') || url.includes('.mov')
+                                )
+                                const posterUrl = item.media_urls.find((url: string) => 
+                                  url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('scontent-')
+                                )
+                                
+                                return (
+                                  <div className="w-full h-full relative">
+                                    {videoUrl && (
+                                      <video
+                                        src={videoUrl}
+                                        poster={posterUrl && (posterUrl.includes('instagram.com') || posterUrl.includes('cdninstagram.com') || posterUrl.includes('scontent-'))
+                                          ? `/api/proxy-image?url=${encodeURIComponent(posterUrl)}`
+                                          : posterUrl
+                                        }
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                      />
+                                    )}
+                                    {/* Play button overlay */}
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all">
+                                      <div className="bg-white bg-opacity-90 rounded-full p-4 group-hover:scale-110 transition-transform">
+                                        <svg className="w-8 h-8 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                                          <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                      </div>
+                                    </div>
+                                    {/* Video indicator badge */}
+                                    <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+                                      🎥 Video
+                                    </div>
+                                  </div>
+                                )
                               }
-                              return 'No date'
                             })()}
-                          </span>
-                        </div>
-                        
-                        {item.caption && (
-                          <div className="text-sm text-gray-700 mb-3">
-                            {(account.platform === 'linkedin' || account.platform === 'instagram') ? (
-                              <>
-                                {expandedPosts.has(item.id) ? item.caption : `${item.caption.substring(0, 120)}...`}
-                                {item.caption.length > 120 && (
-                                  <button
-                                    className="text-blue-600 ml-2 text-xs"
-                                    onClick={() => toggleExpand(item.id)}
-                                  >
-                                    {expandedPosts.has(item.id) ? 'Show less' : 'Read more'}
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <p className="text-sm text-gray-700 mb-3 line-clamp-3">
-                                {item.caption.length > 120 
-                                  ? `${item.caption.substring(0, 120)}...`
-                                  : item.caption
-                                }
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {item.engagement_data && (
-                          <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
-                            {/* Platform-specific engagement metrics */}
-                            {account.platform === 'tiktok' ? (
-                              <>
-                                {item.engagement_data.plays !== undefined && item.engagement_data.plays !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-purple-500">▶️</span> 
-                                    {typeof item.engagement_data.plays === 'number' ? item.engagement_data.plays.toLocaleString() : item.engagement_data.plays}
-                                  </span>
-                                )}
-                                {item.engagement_data.likes !== undefined && item.engagement_data.likes !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-red-500">❤️</span> 
-                                    {typeof item.engagement_data.likes === 'number' ? item.engagement_data.likes.toLocaleString() : item.engagement_data.likes}
-                                  </span>
-                                )}
-                                {item.engagement_data.comments !== undefined && item.engagement_data.comments !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-blue-500">💬</span> 
-                                    {typeof item.engagement_data.comments === 'number' ? item.engagement_data.comments.toLocaleString() : item.engagement_data.comments}
-                                  </span>
-                                )}
-                                {item.engagement_data.shares !== undefined && item.engagement_data.shares !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-green-500">🔄</span> 
-                                    {typeof item.engagement_data.shares === 'number' ? item.engagement_data.shares.toLocaleString() : item.engagement_data.shares}
-                                  </span>
-                                )}
-                              </>
-                            ) : account.platform === 'linkedin' ? (
-                              <div className="flex items-center gap-3 text-xs text-gray-600 mb-3">
-                                <span className="flex items-center gap-1">
-                                  <span className="text-blue-600">👍</span> 
-                                  {item.engagement_data.likes !== undefined && item.engagement_data.likes !== null ? item.engagement_data.likes.toLocaleString() : '0'}
-                                  {item.engagement_data._estimated && (
-                                    <span className="text-xs text-orange-500" title="Estimated based on comment count">~</span>
-                                  )}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <span className="text-blue-500">💬</span> {item.engagement_data.comments !== undefined && item.engagement_data.comments !== null ? item.engagement_data.comments.toLocaleString() : '0'}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <span className="text-green-500">🔁</span> {item.engagement_data.reposts !== undefined && item.engagement_data.reposts !== null ? item.engagement_data.reposts.toLocaleString() : '0'}
-                                </span>
-                                {/* Debug info for LinkedIn engagement */}
-                                {process.env.NODE_ENV === 'development' && (
-                                  <span className="text-xs text-gray-400">
-                                    [Debug: enriched={item.engagement_data._enriched ? 'yes' : 'no'}
-                                    {item.engagement_data._estimated ? ', estimated' : ''}]
-                                  </span>
-                                )}
+                            {/* Video fallback */}
+                            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
+                              <div className="text-center">
+                                <div className="text-4xl mb-2">🎥</div>
+                                <div className="text-sm text-gray-600">Video</div>
+                              </div>
                             </div>
-                            ) : (
-                              // Instagram and other platforms
-                              <>
-                                {item.engagement_data.likes !== undefined && item.engagement_data.likes !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-red-500">❤️</span> 
-                                    {typeof item.engagement_data.likes === 'number' ? item.engagement_data.likes.toLocaleString() : item.engagement_data.likes}
-                                  </span>
-                                )}
-                                {item.engagement_data.comments !== undefined && item.engagement_data.comments !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-blue-500">💬</span> 
-                                    {typeof item.engagement_data.comments === 'number' ? item.engagement_data.comments.toLocaleString() : item.engagement_data.comments}
-                                  </span>
-                                )}
-                                {item.engagement_data.shares !== undefined && item.engagement_data.shares !== null && (
-                                  <span className="flex items-center gap-1">
-                                    <span className="text-green-500">🔄</span> 
-                                    {typeof item.engagement_data.shares === 'number' ? item.engagement_data.shares.toLocaleString() : item.engagement_data.shares}
-                                  </span>
-                                )}
-                              </>
+                          </div>
+                        ) : item.media_urls.length === 1 ? (
+                          // Single image - platform-specific handling
+                          <div className="w-full h-full relative">
+                            <img
+                              src={(() => {
+                                const url = item.media_urls[0]
+                                // Use proxy for Instagram/CDN URLs, but not for LinkedIn/TikTok
+                                if ((url.includes('instagram.com') || url.includes('cdninstagram.com') || url.includes('scontent-')) && account.platform === 'instagram') {
+                                  return `/api/proxy-image?url=${encodeURIComponent(url)}`
+                                }
+                                return url
+                              })()}
+                              alt="Post content"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                                const fallback = e.currentTarget.nextElementSibling as HTMLElement
+                                if (fallback) fallback.style.display = 'flex'
+                              }}
+                            />
+                            {/* Platform badge for non-Instagram content */}
+                            {account.platform !== 'instagram' && (
+                              <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full capitalize">
+                                {account.platform}
+                              </div>
                             )}
+                            {/* Image fallback */}
+                            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
+                              <div className="text-center">
+                                <div className="text-4xl mb-2">📷</div>
+                                <div className="text-sm text-gray-600">Image</div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          // Multiple images - show in grid
+                          <div className={`w-full h-full grid gap-1 ${
+                            item.media_urls.length === 2 ? 'grid-cols-2' :
+                            item.media_urls.length === 3 ? 'grid-cols-2 grid-rows-2' :
+                            'grid-cols-2 grid-rows-2'
+                          }`}>
+                            {item.media_urls.slice(0, 4).map((url, idx) => (
+                              <div key={idx} className={`relative overflow-hidden ${
+                                item.media_urls.length === 3 && idx === 0 ? 'row-span-2' : ''
+                              }`}>
+                                <img
+                                  src={(() => {
+                                    // Use proxy for any Instagram/CDN URLs
+                                    if (url.includes('instagram.com') || url.includes('cdninstagram.com') || url.includes('scontent-')) {
+                                      return `/api/proxy-image?url=${encodeURIComponent(url)}`
+                                    }
+                                    return url
+                                  })()}
+                                  alt={`Carousel image ${idx + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none'
+                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement
+                                    if (fallback) fallback.style.display = 'flex'
+                                  }}
+                                />
+                                {/* Individual image fallback */}
+                                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
+                                  <div className="text-2xl">📷</div>
+                                </div>
+                                {/* Show count overlay on last image if more than 4 */}
+                                {idx === 3 && item.media_urls.length > 4 && (
+                                  <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
+                                    <span className="text-black font-bold text-lg">+{item.media_urls.length - 4}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
-                        
-                        {item.content_url && (
-                          <a
-                            href={item.content_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline"
-                          >
-                            View Original →
-                          </a>
+                        {/* Carousel indicator - only for non-video posts */}
+                        {item.media_urls.length > 1 && item.content_type !== 'video' && (
+                          <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+                            📷 {item.media_urls.length}
+                          </div>
                         )}
+                        {/* Click to view indicator - only for non-video posts */}
+                        {item.media_urls.length > 1 && item.content_type !== 'video' && (
+                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+                            Click to view all
+                          </div>
+                        )}
+                      </motion.div>
+                    ) : null}
+                    
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="px-2 py-1 text-xs bg-gray-100 rounded-full">
+                          {item.content_type}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {(() => {
+                            // Try to get the actual post date from engagement_data.timestamp first
+                            const timestamp = item.engagement_data?.timestamp || item.scraped_at
+                            if (timestamp) {
+                              const date = new Date(timestamp)
+                              // Check if date is valid
+                              if (!isNaN(date.getTime())) {
+                                return date.toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })
+                              }
+                            }
+                            return 'No date'
+                          })()}
+                        </span>
                       </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                      
+                      {item.caption && (
+                        <div className="text-sm text-gray-700 mb-3">
+                          {(account.platform === 'linkedin' || account.platform === 'instagram') ? (
+                            <>
+                              {expandedPosts.has(item.id) ? item.caption : `${item.caption.substring(0, 120)}...`}
+                              {item.caption.length > 120 && (
+                                <button
+                                  className="text-blue-600 ml-2 text-xs"
+                                  onClick={() => toggleExpand(item.id)}
+                                >
+                                  {expandedPosts.has(item.id) ? 'Show less' : 'Read more'}
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-sm text-gray-700 mb-3 line-clamp-3">
+                              {item.caption.length > 120 
+                                ? `${item.caption.substring(0, 120)}...`
+                                : item.caption
+                              }
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {item.engagement_data && (
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
+                          {/* Platform-specific engagement metrics */}
+                          {account.platform === 'tiktok' ? (
+                            <>
+                              {item.engagement_data.plays !== undefined && item.engagement_data.plays !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-purple-500">▶️</span> 
+                                  {typeof item.engagement_data.plays === 'number' ? item.engagement_data.plays.toLocaleString() : item.engagement_data.plays}
+                                </span>
+                              )}
+                              {item.engagement_data.likes !== undefined && item.engagement_data.likes !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-red-500">❤️</span> 
+                                  {typeof item.engagement_data.likes === 'number' ? item.engagement_data.likes.toLocaleString() : item.engagement_data.likes}
+                                </span>
+                              )}
+                              {item.engagement_data.comments !== undefined && item.engagement_data.comments !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-blue-500">💬</span> 
+                                  {typeof item.engagement_data.comments === 'number' ? item.engagement_data.comments.toLocaleString() : item.engagement_data.comments}
+                                </span>
+                              )}
+                              {item.engagement_data.shares !== undefined && item.engagement_data.shares !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-green-500">🔄</span> 
+                                  {typeof item.engagement_data.shares === 'number' ? item.engagement_data.shares.toLocaleString() : item.engagement_data.shares}
+                                </span>
+                              )}
+                            </>
+                          ) : account.platform === 'linkedin' ? (
+                            <div className="flex items-center gap-3 text-xs text-gray-600 mb-3">
+                              <span className="flex items-center gap-1">
+                                <span className="text-blue-600">👍</span> 
+                                {item.engagement_data.likes !== undefined && item.engagement_data.likes !== null ? item.engagement_data.likes.toLocaleString() : '0'}
+                                {item.engagement_data._estimated && (
+                                  <span className="text-xs text-orange-500" title="Estimated based on comment count">~</span>
+                                )}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <span className="text-blue-500">💬</span> {item.engagement_data.comments !== undefined && item.engagement_data.comments !== null ? item.engagement_data.comments.toLocaleString() : '0'}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <span className="text-green-500">🔁</span> {item.engagement_data.reposts !== undefined && item.engagement_data.reposts !== null ? item.engagement_data.reposts.toLocaleString() : '0'}
+                              </span>
+                              {/* Debug info for LinkedIn engagement */}
+                              {process.env.NODE_ENV === 'development' && (
+                                <span className="text-xs text-gray-400">
+                                  [Debug: enriched={item.engagement_data._enriched ? 'yes' : 'no'}
+                                  {item.engagement_data._estimated ? ', estimated' : ''}]
+                                </span>
+                              )}
+                          </div>
+                          ) : (
+                            // Instagram and other platforms
+                            <>
+                              {item.engagement_data.likes !== undefined && item.engagement_data.likes !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-red-500">❤️</span> 
+                                  {typeof item.engagement_data.likes === 'number' ? item.engagement_data.likes.toLocaleString() : item.engagement_data.likes}
+                                </span>
+                              )}
+                              {item.engagement_data.comments !== undefined && item.engagement_data.comments !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-blue-500">💬</span> 
+                                  {typeof item.engagement_data.comments === 'number' ? item.engagement_data.comments.toLocaleString() : item.engagement_data.comments}
+                                </span>
+                              )}
+                              {item.engagement_data.shares !== undefined && item.engagement_data.shares !== null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-green-500">🔄</span> 
+                                  {typeof item.engagement_data.shares === 'number' ? item.engagement_data.shares.toLocaleString() : item.engagement_data.shares}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                      
+                      {item.content_url && (
+                        <a
+                          href={item.content_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          View Original →
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
               </motion.div>
             )}
           </CardContent>
