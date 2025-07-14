@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from 'geist/font/sans'
 import { ClerkProvider } from '@clerk/nextjs'
 import QueryProvider from '@/components/providers/QueryProvider'
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "imospy - Portuguese Real Estate Social Tracker",
@@ -25,14 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <QueryProvider>
-            {children}
-          </QueryProvider>
+    <ClerkProvider publishableKey="pk_test_dGhhbmtzLWZpc2gtODQuY2xlcmsuYWNjb3VudHMuZGV2JA">
+      <html lang="en" className={GeistSans.className}>
+        <body>
+          <QueryProvider>{children}</QueryProvider>
         </body>
       </html>
     </ClerkProvider>

@@ -2,15 +2,17 @@
 
 import { motion, AnimatePresence } from 'motion/react'
 import { useAccounts } from '@/hooks/useAccounts'
-import { useContent } from '@/hooks/useContent'
+import { useContent, ContentItem } from '@/hooks/useContent'
 import AddAccountForm from './AddAccountForm'
 import AccountList from './AccountList'
 import AnalyticsDashboard from './AnalyticsDashboard'
+import CompanyAdsPage from '@/app/company-ads/page'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { TrackedAccount } from '@/types'
 
 export default function DashboardContent() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'analytics'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'company-ads'>('overview')
   const { data: accounts = [], isLoading, error, refetch } = useAccounts()
   const { data: allContent = [] } = useContent()
 
@@ -22,11 +24,11 @@ export default function DashboardContent() {
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
   
-  const todaysPosts = allContent.filter(item => 
+  const todaysPosts = allContent.filter((item: ContentItem) => 
     new Date(item.scraped_at) >= todayStart
   ).length
 
-  const totalEngagement = allContent.reduce((sum, item) => {
+  const totalEngagement = allContent.reduce((sum: number, item: ContentItem) => {
     const engagement = item.engagement_data || {}
     return sum + (engagement.likes || 0) + (engagement.comments || 0) + (engagement.shares || 0)
   }, 0)
@@ -96,6 +98,18 @@ export default function DashboardContent() {
           >
             Analytics
           </motion.button>
+          <motion.button
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setActiveTab('company-ads')}
+            className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'company-ads'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Company Ads
+          </motion.button>
         </nav>
       </div>
 
@@ -135,7 +149,7 @@ export default function DashboardContent() {
                   ),
                   bgColor: 'bg-green-100',
                   title: 'Active Accounts',
-                  value: accounts.filter(account => account.is_active).length
+                  value: accounts.filter((account: TrackedAccount) => account.is_active).length
                 },
                 {
                   icon: (
@@ -211,6 +225,17 @@ export default function DashboardContent() {
             transition={{ duration: 0.3 }}
           >
             <AnalyticsDashboard />
+          </motion.div>
+        )}
+        {activeTab === 'company-ads' && (
+          <motion.div
+            key="company-ads"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CompanyAdsPage />
           </motion.div>
         )}
       </AnimatePresence>

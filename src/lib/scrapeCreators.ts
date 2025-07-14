@@ -4,7 +4,7 @@ interface ScrapeCreatorsConfig {
 }
 
 // Updated interfaces based on actual API responses
-interface InstagramProfileData {
+export interface InstagramProfileData {
   success: boolean
   data: {
     user: {
@@ -42,7 +42,7 @@ interface InstagramProfileData {
   }
 }
 
-interface InstagramPostData {
+export interface InstagramPostData {
   id: string
   shortcode: string
   display_url: string
@@ -61,7 +61,7 @@ interface InstagramPostData {
   __typename: string
 }
 
-interface TikTokProfileData {
+export interface TikTokProfileData {
   user: {
     id: string
     uniqueId: string
@@ -77,7 +77,7 @@ interface TikTokProfileData {
   }
 }
 
-interface TikTokPostData {
+export interface TikTokPostData {
   id: string
   desc: string
   video: {
@@ -98,7 +98,7 @@ interface TikTokPostData {
   }
 }
 
-interface LinkedInProfileData {
+export interface LinkedInProfileData {
   success: boolean
   name: string
   location: string
@@ -110,7 +110,7 @@ interface LinkedInProfileData {
   activity: any[]
 }
 
-interface LinkedInPostData {
+export interface LinkedInPostData {
   id: string
   text: string
   media?: any[]
@@ -126,10 +126,43 @@ interface LinkedInPostData {
   }
 }
 
+export interface FacebookAd {
+  ad_archive_id: string;
+  page_id: string;
+  page_name: string;
+  snapshot: {
+    [key: string]: any;
+  };
+}
+
+export interface FacebookAdDetails {
+  ad_archive_id: string;
+  ad_creation_time: string;
+  ad_creative_bodies: string[];
+  ad_creative_link_captions: string[];
+  ad_creative_link_descriptions: string[];
+  ad_creative_link_titles: string[];
+  ad_delivery_start_time: string;
+  ad_delivery_stop_time: string | null;
+  ad_snapshot_url: string;
+  bylines: string;
+  currency: string;
+  spend: {
+    lower_bound: string;
+    upper_bound: string;
+  };
+  impressions: {
+    lower_bound: string;
+    upper_bound: string;
+  };
+  [key: string]: any;
+}
+
+
 export type ProfileData = InstagramProfileData | TikTokProfileData | LinkedInProfileData
 export type PostData = InstagramPostData | TikTokPostData | LinkedInPostData
 
-class ScrapeCreatorsAPI {
+export class ScrapeCreatorsAPI {
   private config: ScrapeCreatorsConfig
 
   constructor(config: ScrapeCreatorsConfig) {
@@ -223,6 +256,15 @@ class ScrapeCreatorsAPI {
       })
       throw error
     }
+  }
+
+  // Facebook Ad Library Methods
+  async getCompanyAds(companyName: string): Promise<{ ads: FacebookAd[] }> {
+    return this.makeRequest('/v1/facebook/ads/company', { company_name: companyName });
+  }
+
+  async getAdDetails(adId: string): Promise<FacebookAdDetails> {
+    return this.makeRequest('/v1/facebook/ads/details', { ad_id: adId });
   }
 
   // Generic method based on platform
