@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const adRecords = adDetails.map(ad => ({
       company_id: companyId,
       ad_archive_id: ad.adArchiveID.toString(),
-      ad_creation_time: new Date(ad.creation_time * 1000).toISOString(),
+      ad_creation_time: ad.creation_time ? new Date(ad.creation_time * 1000).toISOString() : null,
       ad_creative_body: ad.snapshot.body,
       ad_creative_link_caption: ad.snapshot.caption,
       ad_creative_link_title: ad.snapshot.title,
