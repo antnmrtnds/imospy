@@ -127,7 +127,7 @@ export interface LinkedInPostData {
 }
 
 export interface FacebookAd {
-  adArchiveID: string;
+  ad_archive_id: string;
   page_id: string;
   page_name: string;
   snapshot: {
@@ -259,7 +259,7 @@ export class ScrapeCreatorsAPI {
   }
 
   // Facebook Ad Library Methods
-  async getCompanyAds(companyName: string): Promise<FacebookAd[]> {
+  async getCompanyAds(companyName: string): Promise<{ results: FacebookAd[] }> {
     return this.makeRequest('/v1/facebook/adLibrary/company/ads', { companyName });
   }
 
