@@ -19,12 +19,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Get all of a company's ads
-    const companyAds = await scrapeCreators.getCompanyAds(companyName);
+    const companyAds: FacebookAd[] = await scrapeCreators.getCompanyAds(companyName);
 
     // 2. Store the response in a json (in-memory for now)
     const adsById: { [key: string]: FacebookAd } = {};
-    for (const ad of companyAds.ads) {
-      adsById[ad.ad_archive_id] = ad;
+    for (const ad of companyAds) {
+      adsById[ad.adArchiveID] = ad;
     }
 
     // 3. Extract each ad's id
@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
 
     // 6. Parse all ads and store in a new json file the top (x)% longest running ads.
     const adsWithDuration: AdWithDuration[] = adDetails.map((ad: FacebookAdDetails) => {
-      const startTime = new Date(ad.ad_delivery_start_time).getTime();
-      const endTime = ad.ad_delivery_stop_time ? new Date(ad.ad_delivery_stop_time).getTime() : Date.now();
+      const startTime = ad.startDate * 1000;
+      const endTime = ad.endDate ? ad.endDate * 1000 : Date.now();
       const duration = endTime - startTime;
       return { ...ad, duration };
     });

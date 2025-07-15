@@ -127,7 +127,7 @@ export interface LinkedInPostData {
 }
 
 export interface FacebookAd {
-  ad_archive_id: string;
+  adArchiveID: string;
   page_id: string;
   page_name: string;
   snapshot: {
@@ -136,25 +136,25 @@ export interface FacebookAd {
 }
 
 export interface FacebookAdDetails {
-  ad_archive_id: string;
-  ad_creation_time: string;
-  ad_creative_bodies: string[];
-  ad_creative_link_captions: string[];
-  ad_creative_link_descriptions: string[];
-  ad_creative_link_titles: string[];
-  ad_delivery_start_time: string;
-  ad_delivery_stop_time: string | null;
-  ad_snapshot_url: string;
-  bylines: string;
-  currency: string;
-  spend: {
-    lower_bound: string;
-    upper_bound: string;
+  adid: number;
+  adArchiveID: number;
+  snapshot: {
+    ad_creative_id: number;
+    cards: any[];
+    title: string | null;
+    body: string;
+    videos: {
+      video_hd_url?: string;
+      video_sd_url?: string;
+      video_preview_image_url?: string;
+    }[];
+    images: {
+      original_image_url?: string;
+    }[];
+    [key: string]: any;
   };
-  impressions: {
-    lower_bound: string;
-    upper_bound: string;
-  };
+  startDate: number;
+  endDate: number | null;
   [key: string]: any;
 }
 
@@ -259,12 +259,12 @@ export class ScrapeCreatorsAPI {
   }
 
   // Facebook Ad Library Methods
-  async getCompanyAds(companyName: string): Promise<{ ads: FacebookAd[] }> {
-    return this.makeRequest('/v1/facebook/adLibrary/company/ads', { companyName: companyName });
+  async getCompanyAds(companyName: string): Promise<FacebookAd[]> {
+    return this.makeRequest('/v1/facebook/adLibrary/company/ads', { companyName });
   }
 
-  async getAdDetails(adId: string): Promise<FacebookAdDetails> {
-    return this.makeRequest('/v1/facebook/adLibrary/ad', { ad_id: adId });
+  async getAdDetails(adId: string, getTranscript: boolean = false, trim: boolean = false): Promise<FacebookAdDetails> {
+    return this.makeRequest('/v1/facebook/adLibrary/ad', { id: adId, get_transcript: getTranscript.toString(), trim: trim.toString() });
   }
 
   // Generic method based on platform
