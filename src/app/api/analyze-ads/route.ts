@@ -50,18 +50,22 @@ export async function POST(req: NextRequest) {
     const adDetails: FacebookAdDetails[] = await Promise.all(adDetailsPromises);
 
     // 4. Upsert ad details into Supabase
-    const adRecords = adDetails.map(ad => ({
-      company_id: companyId,
-      ad_archive_id: ad.adArchiveID.toString(),
-      ad_creation_time: ad.creation_time ? new Date(ad.creation_time * 1000).toISOString() : null,
-      ad_creative_body: ad.snapshot.body,
-      ad_creative_link_caption: ad.snapshot.caption,
-      ad_creative_link_title: ad.snapshot.title,
-      ad_snapshot_url: ad.snapshot.videos[0]?.video_hd_url || ad.snapshot.images[0]?.original_image_url,
-      video_preview_image_url: ad.snapshot.videos[0]?.video_preview_image_url,
-      start_date: new Date(ad.startDate * 1000).toISOString(),
-      end_date: ad.endDate ? new Date(ad.endDate * 1000).toISOString() : null,
-    }));
+    const adRecords = adDetails.map(ad => {
+      const isVideo = ad.snapshot.videos && ad.snapshot.videos.length > 0;
+      return {
+        company_id: companyId,
+        ad_archive_id: ad.adArchiveID.toString(),
+        ad_creation_time: ad.creation_time ? new Date(ad.creation_time * 1000).toISOString() : null,
+        ad_creative_body: ad.snapshot.body,
+        ad_creative_link_caption: ad.snapshot.caption,
+        ad_creative_link_title: ad.snapshot.title,
+        media_url: isVideo ? ad.snapshot.videos[0].video_hd_url : ad.snapshot.images[0]?.original_image_url,
+        thumbnail_url: isVideo ? ad.snapshot.videos[0].video_preview_image_url : ad.snapshot.images[0]?.original_image_url,
+        is_video: isVideo,
+        start_date: new Date(ad.startDate * 1000).toISOString(),
+        end_date: ad.endDate ? new Date(ad.endDate * 1000).toISOString() : null,
+      }
+    });
 
     const { error: upsertError } = await supabase.from('ads').upsert(adRecords, {
       onConflict: 'ad_archive_id',

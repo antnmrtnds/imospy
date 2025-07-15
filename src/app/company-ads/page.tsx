@@ -154,7 +154,7 @@ export default function CompanyAdsPage() {
                     {analysis.results.longestRunningAds.slice(0, 3).map(ad => (
                       <img
                         key={ad.adArchiveID}
-                        src={ad.snapshot.videos[0]?.video_preview_image_url || ad.snapshot.images[0]?.original_image_url}
+                        src={ad.is_video ? ad.snapshot.videos[0]?.video_preview_image_url : ad.snapshot.images[0]?.original_image_url}
                         alt="Ad Thumbnail"
                         className="w-full h-auto rounded-sm"
                       />
