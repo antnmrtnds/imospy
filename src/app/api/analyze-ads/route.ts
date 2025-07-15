@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ScrapeCreatorsAPI, FacebookAd, FacebookAdDetails } from '@/lib/scrapeCreators';
 
 const scrapeCreators = new ScrapeCreatorsAPI({
-  apiKey: process.env.SCRAPE_CREATORS_API_KEY!,
+  apiKey: process.env.SCRAPECREATORS_API_KEY!,
   baseUrl: 'https://api.scrapecreators.com',
 });
 
