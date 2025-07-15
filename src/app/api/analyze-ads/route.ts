@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Get all of a company's ads
-    const companyAds: FacebookAd[] = await scrapeCreators.getCompanyAds(companyName);
+    const companyAds = await scrapeCreators.getCompanyAds(companyName);
+    console.log('Received from getCompanyAds:', JSON.stringify(companyAds, null, 2));
 
     // 2. Store the response in a json (in-memory for now)
     const adsById: { [key: string]: FacebookAd } = {};
