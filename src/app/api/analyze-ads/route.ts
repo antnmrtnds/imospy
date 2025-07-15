@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
       ad_creative_body: ad.snapshot.body,
       ad_creative_link_caption: ad.snapshot.caption,
       ad_creative_link_title: ad.snapshot.title,
-      ad_snapshot_url: ad.snapshot.videos[0]?.video_preview_image_url || ad.snapshot.images[0]?.original_image_url,
+      ad_snapshot_url: ad.snapshot.videos[0]?.video_hd_url || ad.snapshot.images[0]?.original_image_url,
+      video_preview_image_url: ad.snapshot.videos[0]?.video_preview_image_url,
       start_date: new Date(ad.startDate * 1000).toISOString(),
       end_date: ad.endDate ? new Date(ad.endDate * 1000).toISOString() : null,
     }));

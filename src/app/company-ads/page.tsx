@@ -26,6 +26,17 @@ interface Analysis {
   };
 }
 
+// Function to decode HTML entities and handle line breaks
+function FormattedAdBody({ body }: { body: string }) {
+  const textWithLineBreaks = body.replace(/<br\s*\/?>/gi, '\n');
+  return (
+    <p className="text-sm text-gray-600 mb-2" style={{ whiteSpace: 'pre-line' }}>
+      {textWithLineBreaks}
+    </p>
+  );
+}
+
+
 export default function CompanyAdsPage() {
   const [companyName, setCompanyName] = useState('');
   const [percentage, setPercentage] = useState(10);
@@ -82,7 +93,7 @@ export default function CompanyAdsPage() {
 
   const formatDuration = (ms: number) => {
     const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-    return `${days} days`;
+    return days;
   };
 
   return (
@@ -131,22 +142,27 @@ export default function CompanyAdsPage() {
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-1">
-          <h2 className="text-xl font-semibold mb-4">Analysis History</h2>
-          {analysisHistory.length > 0 ? (
-            <ul className="space-y-2">
+          {analysisHistory.length > 0 && (
+            <div className="space-y-2">
               {analysisHistory.map((analysis) => (
-                <li key={analysis.id}>
-                  <Button
-                    variant="link"
-                    onClick={() => handleHistoryClick(analysis)}
-                  >
-                    {new Date(analysis.ran_at).toLocaleString()} - Top {analysis.percentage}%
-                  </Button>
-                </li>
+                <div
+                  key={analysis.id}
+                  onClick={() => handleHistoryClick(analysis)}
+                  className="cursor-pointer p-2 rounded-md hover:bg-gray-100"
+                >
+                  <div className="grid grid-cols-3 gap-1">
+                    {analysis.results.longestRunningAds.slice(0, 3).map(ad => (
+                      <img
+                        key={ad.adArchiveID}
+                        src={ad.snapshot.videos[0]?.video_preview_image_url || ad.snapshot.images[0]?.original_image_url}
+                        alt="Ad Thumbnail"
+                        className="w-full h-auto rounded-sm"
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
-            </ul>
-          ) : (
-            <p>No history for this company.</p>
+            </div>
           )}
         </div>
 
@@ -154,8 +170,11 @@ export default function CompanyAdsPage() {
           {ads.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {ads.map((ad) => (
-                <Card key={ad.adArchiveID}>
-                  <CardContent className="p-4">
+                <Card key={ad.adArchiveID} className="relative">
+                  <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white p-2 rounded-md">
+                    <span className="font-bold text-lg">{formatDuration(ad.duration)}</span> days
+                  </div>
+                  <CardContent className="p-4 pt-16">
                     {ad.snapshot.videos && ad.snapshot.videos.length > 0 ? (
                       <video
                         controls
@@ -169,8 +188,7 @@ export default function CompanyAdsPage() {
                         className="w-full h-auto rounded-md mb-4"
                       />
                     ) : null}
-                    <p className="text-sm text-gray-600 mb-2">{ad.snapshot.body}</p>
-                    <p className="text-xs text-gray-500">Duration: {formatDuration(ad.duration)}</p>
+                    <FormattedAdBody body={ad.snapshot.body} />
                   </CardContent>
                 </Card>
               ))}

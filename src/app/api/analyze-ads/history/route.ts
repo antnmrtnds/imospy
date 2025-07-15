@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
                 ...ad,
                 snapshot: { // Reconstruct snapshot for frontend compatibility
                     body: ad.ad_creative_body,
-                    videos: ad.ad_snapshot_url && ad.ad_snapshot_url.includes('video') ? [{ video_sd_url: ad.ad_snapshot_url }] : [],
+                    videos: ad.ad_snapshot_url && ad.ad_snapshot_url.includes('video') ? [{ video_sd_url: ad.ad_snapshot_url, video_preview_image_url: ad.video_preview_image_url }] : [],
                     images: ad.ad_snapshot_url && ad.ad_snapshot_url.includes('image') ? [{ original_image_url: ad.ad_snapshot_url }] : [],
                 },
                 adArchiveID: ad.ad_archive_id,
