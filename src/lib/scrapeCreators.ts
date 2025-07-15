@@ -260,7 +260,7 @@ export class ScrapeCreatorsAPI {
 
   // Facebook Ad Library Methods
   async getCompanyAds(companyName: string): Promise<{ ads: FacebookAd[] }> {
-    return this.makeRequest('/v1/facebook/ads/company', { company_name: companyName });
+    return this.makeRequest('/v1/facebook/adLibrary/company/ads', { company_name: companyName });
   }
 
   async getAdDetails(adId: string): Promise<FacebookAdDetails> {
