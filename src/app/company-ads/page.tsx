@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Ad {
   adArchiveID: number;
+  is_video: boolean;
   snapshot: {
     body: string;
     videos: { video_hd_url?: string; video_sd_url?: string; video_preview_image_url?: string; }[];
@@ -43,26 +44,6 @@ export default function CompanyAdsPage() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [analysisHistory, setAnalysisHistory] = useState<Analysis[]>([]);
-
-  useEffect(() => {
-    if (companyName) {
-      fetchAnalysisHistory();
-    }
-  }, [companyName]);
-
-  const fetchAnalysisHistory = async () => {
-    try {
-      const response = await fetch(`/api/analyze-ads/history?companyName=${companyName}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch analysis history');
-      }
-      const data = await response.json();
-      setAnalysisHistory(data.history);
-    } catch (error: any) {
-      setError(error.message);
-    }
-  };
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -79,16 +60,11 @@ export default function CompanyAdsPage() {
       }
       const data = await response.json();
       setAds(data.longestRunningAds);
-      fetchAnalysisHistory(); // Refresh history
     } catch (error: any) {
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleHistoryClick = (analysis: Analysis) => {
-    setAds(analysis.results.longestRunningAds);
   };
 
   const formatDuration = (ms: number) => {
@@ -140,61 +116,34 @@ export default function CompanyAdsPage() {
         </Card>
       )}
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-1">
-          {analysisHistory.length > 0 && (
-            <div className="space-y-2">
-              {analysisHistory.map((analysis) => (
-                <div
-                  key={analysis.id}
-                  onClick={() => handleHistoryClick(analysis)}
-                  className="cursor-pointer p-2 rounded-md hover:bg-gray-100"
-                >
-                  <div className="grid grid-cols-3 gap-1">
-                    {analysis.results.longestRunningAds.slice(0, 3).map(ad => (
-                      <img
-                        key={ad.adArchiveID}
-                        src={ad.is_video ? ad.snapshot.videos[0]?.video_preview_image_url : ad.snapshot.images[0]?.original_image_url}
-                        alt="Ad Thumbnail"
-                        className="w-full h-auto rounded-sm"
-                      />
-                    ))}
-                  </div>
+      <div className="mt-6">
+        {ads.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ads.map((ad) => (
+              <Card key={ad.adArchiveID} className="relative">
+                <div className="absolute top-2 left-2 text-green-500 p-2 rounded-md">
+                  <span className="font-bold text-lg">{formatDuration(ad.duration)}</span> days
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="md:col-span-3">
-          {ads.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ads.map((ad) => (
-                <Card key={ad.adArchiveID} className="relative">
-                  <div className="absolute top-2 left-2 text-green-500 p-2 rounded-md">
-                    <span className="font-bold text-lg">{formatDuration(ad.duration)}</span> days
-                  </div>
-                  <CardContent className="p-4 pt-16">
-                    {ad.snapshot.videos && ad.snapshot.videos.length > 0 ? (
-                      <video
-                        controls
-                        src={ad.snapshot.videos[0].video_hd_url || ad.snapshot.videos[0].video_sd_url}
-                        className="w-full h-auto rounded-md mb-4"
-                      />
-                    ) : ad.snapshot.images && ad.snapshot.images.length > 0 && (!ad.snapshot.videos || ad.snapshot.videos.length === 0) ? (
-                      <img
-                        src={ad.snapshot.images[0].original_image_url}
-                        alt="Ad creative"
-                        className="w-full h-auto rounded-md mb-4"
-                      />
-                    ) : null}
-                    <FormattedAdBody body={ad.snapshot.body} />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+                <CardContent className="p-4 pt-16">
+                  {ad.snapshot.videos && ad.snapshot.videos.length > 0 ? (
+                    <video
+                      controls
+                      src={ad.snapshot.videos[0].video_hd_url || ad.snapshot.videos[0].video_sd_url}
+                      className="w-full h-auto rounded-md mb-4"
+                    />
+                  ) : ad.snapshot.images && ad.snapshot.images.length > 0 && (!ad.snapshot.videos || ad.snapshot.videos.length === 0) ? (
+                    <img
+                      src={ad.snapshot.images[0].original_image_url}
+                      alt="Ad creative"
+                      className="w-full h-auto rounded-md mb-4"
+                    />
+                  ) : null}
+                  <FormattedAdBody body={ad.snapshot.body} />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
