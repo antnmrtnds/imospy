@@ -89,8 +89,12 @@ export default function CompanyAdsPage() {
             <CardContent>
               {ad.snapshot.videos && ad.snapshot.videos.length > 0 ? (
                 <video controls src={ad.snapshot.videos[0].video_hd_url || ad.snapshot.videos[0].video_sd_url} className="w-full" />
-              ) : ad.snapshot.images && ad.snapshot.images.length > 0 ? (
-                <img src={ad.snapshot.images[0].resized_image_url || ad.snapshot.images[0].original_image_url} alt="Ad creative" className="w-full" />
+              ) : ad.snapshot.images && ad.snapshot.images.length > 0 && (!ad.snapshot.videos || ad.snapshot.videos.length === 0) ? (
+                <img
+                  src={ad.snapshot.images[0].original_image_url}
+                  alt="Ad creative"
+                  className="w-full h-auto rounded-md mb-4"
+                />
               ) : null}
               <p className="mt-4">{ad.ad_creative_bodies[0]}</p>
               <p className="mt-2 text-sm text-gray-500">
