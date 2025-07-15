@@ -29,6 +29,9 @@ interface Analysis {
 
 // Function to decode HTML entities and handle line breaks
 function FormattedAdBody({ body }: { body: string }) {
+  if (!body) {
+    return null;
+  }
   const textWithLineBreaks = body.replace(/<br\s*\/?>/gi, '\n');
   return (
     <p className="text-sm text-gray-600 mb-2" style={{ whiteSpace: 'pre-line' }}>

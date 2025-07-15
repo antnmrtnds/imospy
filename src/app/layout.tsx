@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider publishableKey="pk_test_dGhhbmtzLWZpc2gtODQuY2xlcmsuYWNjb3VudHMuZGV2JA">
-      <html lang="en" className={GeistSans.className}>
+      <html lang="en">
         <body>
           <QueryProvider>{children}</QueryProvider>
         </body>
