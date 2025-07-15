@@ -10,7 +10,7 @@ interface Ad {
   adArchiveID: number;
   snapshot: {
     body: string;
-    videos: { video_hd_url?: string; video_sd_url?: string }[];
+    videos: { video_hd_url?: string; video_sd_url?: string; video_preview_image_url?: string; }[];
     images: { original_image_url?: string }[];
   };
   duration: number;
@@ -171,7 +171,7 @@ export default function CompanyAdsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {ads.map((ad) => (
                 <Card key={ad.adArchiveID} className="relative">
-                  <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white p-2 rounded-md">
+                  <div className="absolute top-2 left-2 text-green-500 p-2 rounded-md">
                     <span className="font-bold text-lg">{formatDuration(ad.duration)}</span> days
                   </div>
                   <CardContent className="p-4 pt-16">
